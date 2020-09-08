@@ -1,0 +1,56 @@
+parameters:
+  condition: ""
+  dependsOn: ""
+  hubOrSpoke: ""
+  pool: {}
+  vaultName: ""
+  svcConnection: ""
+
+jobs:
+- job: Pester_Int_Func
+  condition: ${{ parameters.condition }}
+  continueOnError: false
+  dependsOn: ${{ parameters.dependsOn }}
+  displayName: "Pester Int & Func"
+  pool: ${{ parameters.pool }}
+  workspace:
+    clean: all
+  steps:
+  - checkout: self
+
+  - template: /.pipelines/03_steps/az_vault.yml
+    parameters:
+      vaultName: ${{ parameters.vaultName }}
+      svcConnection: ${{ parameters.svcConnection }}
+
+  - task: PowerShell@2
+    displayName: "Invoke Pester"
+    env:
+      ARMCLIENTSECRET: $(ARMCLIENTSECRET)
+      AZDOPAT: $(AZDOPAT)
+    inputs:
+      arguments: >-
+        -clientId "$(ARMCLIENTID)"
+        -environment "$(TERRAFORM_ENVIRONMENT)"
+        -hubOrSpoke "${{ parameters.hubOrSpoke }}"
+        -location "$(TERRAFORM_LOCATION)"
+        -subscriptionName "$(ENVIRONMENT_NAME)"
+        -tenantId "$(ARMTENANTID)"
+      filePath: $(System.DefaultWorkingDirectory)/scripts/pester/functional/invoke-pester.ps1
+      pwsh: true
+      targetType: filePath
+      workingDirectory: $(System.DefaultWorkingDirectory)/scripts/pester/functional/
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Pester Artifact'
+    inputs:
+      targetPath: $(System.DefaultWorkingDirectory)/scripts/pester/functional/IntFunc-Pester-$(ENVIRONMENT_NAME).XML
+      artifact: pester_int_func_$(ENVIRONMENT_NAME)
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'NUnit'
+      testResultsFiles: $(System.DefaultWorkingDirectory)/scripts/pester/functional/IntFunc-Pester-$(ENVIRONMENT_NAME).XML
+      testRunTitle: $(ENVIRONMENT_NAME)
+      publishRunAttachments: true
+    displayName: "Publish Results"

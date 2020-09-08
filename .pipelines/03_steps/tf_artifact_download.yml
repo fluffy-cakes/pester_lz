@@ -1,0 +1,9 @@
+parameters:
+  terraformRootFolder: ""
+
+steps:
+- task: DownloadPipelineArtifact@2
+  displayName: 'Download TF Artifact'
+  inputs:
+    artifactName: tfplan
+    targetPath: ${{ parameters.terraformRootFolder }}

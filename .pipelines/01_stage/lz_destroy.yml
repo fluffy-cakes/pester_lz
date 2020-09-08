@@ -1,0 +1,27 @@
+parameters:
+  pool: {}
+  terraformVersion: ""
+
+
+stages:
+- stage: DestroyLZ
+  displayName: "DestroyLZ"
+  jobs:
+  - template: /.pipelines/02_jobs/lz_base.yml
+    parameters:
+      condition: |
+        and
+        (
+          ne(canceled(), true),
+          ne(failed(), true),
+          eq(variables.base, 'yes'),
+          eq(variables.terraformDestroy, 'yes')
+        )
+      dependsOn: ""
+      pool:
+        vmImage: Ubuntu 18.04
+      terraformBackendContainerName: $(TERRAFORM_BACKEND_CONTAINER_NAME)
+      terraformBackendStorageName: $(TERRAFORM_BACKEND_STORAGE_NAME)
+      terraformVersion: ${{ parameters.terraformVersion }}
+      vaultName: $(VAULT_NAME)
+      svcConnection: $(SVC_CONNECTION)

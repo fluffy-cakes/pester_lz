@@ -1,0 +1,41 @@
+steps:
+
+- template: /.pipelines/03_steps/tf_install.yml
+  parameters:
+    terraformVersion: ${{ parameters.terraformVersion }}
+
+- template: /.pipelines/03_steps/az_vault.yml
+  parameters:
+    vaultName: ${{ parameters.vaultName }}
+    svcConnection: ${{ parameters.svcConnection }}
+
+- template: /.pipelines/03_steps/tf_00_var_inputs.yml
+  parameters:
+    terraformRootFolder: ${{ parameters.terraformRootFolder }}
+    terraformTFVars: ${{ parameters.terraformTFVars }}
+    terraformVars: ${{ parameters.terraformVars }}
+
+- template: /.pipelines/03_steps/bash_debug_env_vars.yml
+
+- template: /.pipelines/03_steps/tf_01_init.yml
+  parameters:
+    terraformBackendContainerName: ${{ parameters.terraformBackendContainerName }}
+    terraformBackendKeyName: ${{ parameters.terraformBackendKeyName }}
+    terraformBackendStorageName: ${{ parameters.terraformBackendStorageName }}
+    terraformRootFolder: ${{ parameters.terraformRootFolder }}
+
+- template: /.pipelines/03_steps/tf_02_validate.yml
+  parameters:
+    terraformRootFolder: ${{ parameters.terraformRootFolder }}
+
+- template: /.pipelines/03_steps/tf_03_plan.yml
+  parameters:
+    terraformRootFolder: ${{ parameters.terraformRootFolder }}
+
+- template: /.pipelines/03_steps/tf_03_plan_destroy.yml
+  parameters:
+    terraformRootFolder: ${{ parameters.terraformRootFolder }}
+
+- template: /.pipelines/03_steps/tf_04_apply_auto.yml
+  parameters:
+    terraformRootFolder: ${{ parameters.terraformRootFolder }}

@@ -1,0 +1,36 @@
+parameters:
+  terraformRootFolder: ""
+  terraformTFVars: ""
+  terraformVars: ""
+
+steps:
+- script: |
+    cd $SYSTEM_DEFAULTWORKINGDIRECTORY/${{ parameters.terraformRootFolder }}
+    echo "Loading vars into pipeline..."
+    IFS=','
+    ARMarray=()
+    read -ra ARRAY1 <<< "ARM_CLIENT_ID=$(ARMCLIENTID),ARM_CLIENT_SECRET=$(ARMCLIENTSECRET),ARM_SUBSCRIPTION_ID=$(ARMSUBSCRIPTIONID),ARM_TENANT_ID=$(ARMTENANTID),ARM_ENVIRONMENT=$(TERRAFORM_ENVIRONMENT),ARM_LOCATION=$(TERRAFORM_LOCATION)"
+    for i in "${ARRAY1[@]}"; do
+      echo "-var='$i'"
+      ARMarray+=("-var='$i'")
+    done
+    echo "##vso[task.setvariable variable=TFARMarray;]${ARMarray[@]}"
+
+    IFS=' '
+    VARarray=()
+    read -ra ARRAY2 <<< "${{ parameters.terraformVars }}"
+    for i in "${ARRAY2[@]}"; do
+      echo "-var='$i'"
+      VARarray+=("-var='$i'")
+    done
+    echo "##vso[task.setvariable variable=TFarray;]${VARarray[@]}"
+
+    IFS=' '
+    TFVARSarray=()
+    read -ra ARRAY3 <<< "${{ parameters.terraformTFVars }}"
+    for i in "${ARRAY3[@]}"; do
+      echo "-var-file=\"$SYSTEM_DEFAULTWORKINGDIRECTORY/$i\""
+      TFVARSarray+=("-var-file=\"$SYSTEM_DEFAULTWORKINGDIRECTORY/$i\"")
+    done
+    echo "##vso[task.setvariable variable=TFtfvars;]${TFVARSarray[@]}"
+  displayName: "Load secrets into TF vars"

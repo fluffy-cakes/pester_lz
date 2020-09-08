@@ -1,0 +1,78 @@
+parameters:
+  condition: ""
+  dependsOn: ""
+  module: ""
+  pool: {}
+  terraformBackendContainerName: ""
+  terraformBackendKeyName: "$(TERRAFORM_LOCATION)_base.tfstate"
+  terraformBackendStorageName: ""
+  terraformRootFolder: modules/base
+  terraformTFVars: >-
+    org/hub/tfvars.tfvars
+  terraformVars: >-
+    azdo_agent_pool=myPool
+    azdo_organisation_name=fluffypaulmackinnon
+    azdo_pat=$(AZDOPAT)
+  terraformVersion: ""
+  vaultName: ""
+  svcConnection: ""
+
+
+jobs:
+- ${{ if and(ne(parameters.module, 'plan_base'), ne(parameters.module, 'apply_base')) }}:
+  - job: LZ_Base
+    condition: ${{ parameters.condition }}
+    continueOnError: false
+    dependsOn: ${{ parameters.dependsOn }}
+    displayName: "LZ Base"
+    pool: ${{ parameters.pool }}
+    workspace:
+      clean: all
+    steps:
+    - checkout: self
+    - template: /.pipelines/03_steps/steps_deploy_TF.yml
+      parameters:
+        terraformBackendContainerName: ${{ parameters.terraformBackendContainerName }}
+        terraformBackendKeyName: ${{ parameters.terraformBackendKeyName }}
+        terraformBackendStorageName: ${{ parameters.terraformBackendStorageName }}
+        terraformRootFolder: ${{ parameters.terraformRootFolder }}
+        terraformTFVars: ${{ parameters.terraformTFVars }}
+        terraformVars: ${{ parameters.terraformVars }}
+        terraformVersion: ${{ parameters.terraformVersion }}
+        vaultName: ${{ parameters.vaultName }}
+        svcConnection: ${{ parameters.svcConnection }}
+
+- ${{ if or(eq(parameters.module, 'plan_base'), eq(parameters.module, 'apply_base')) }}:
+  - deployment: LZ_Base
+    ${{ if eq(parameters.module, 'plan_base') }}:
+      displayName: "PLAN LZ Base"
+      environment: terraform_plan
+    ${{ if eq(parameters.module, 'apply_base') }}:
+      displayName: "APPLY LZ Base"
+      environment: terraform_apply
+    condition: ${{ parameters.condition }}
+    continueOnError: false
+    dependsOn: ${{ parameters.dependsOn }}
+    pool: ${{ parameters.pool }}
+    workspace:
+      clean: all
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+          - template: /.pipelines/03_steps/steps_deploy_TF_artifact.yml
+            parameters:
+              ${{ if eq(parameters.module, 'plan_base') }}:
+                type: plan
+              ${{ if eq(parameters.module, 'apply_base') }}:
+                type: apply
+              terraformBackendContainerName: ${{ parameters.terraformBackendContainerName }}
+              terraformBackendKeyName: ${{ parameters.terraformBackendKeyName }}
+              terraformBackendStorageName: ${{ parameters.terraformBackendStorageName }}
+              terraformRootFolder: ${{ parameters.terraformRootFolder }}
+              terraformTFVars: ${{ parameters.terraformTFVars }}
+              terraformVars: ${{ parameters.terraformVars }}
+              terraformVersion: ${{ parameters.terraformVersion }}
+              vaultName: ${{ parameters.vaultName }}
+              svcConnection: ${{ parameters.svcConnection }}

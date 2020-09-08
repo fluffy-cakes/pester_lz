@@ -1,0 +1,38 @@
+parameters:
+- name: base
+  displayName: "Base"
+  type: boolean
+  default: true
+
+- name: planDeploy
+  displayName: "Plan Only"
+  type: boolean
+  default: true
+
+- name: terraformDestroy
+  displayName: "Destroy!"
+  type: boolean
+  default: true
+
+name: "$(BuildID) $(Date:yyyy-MM-dd HH-mm) UTC ~ "
+
+pr: none
+trigger: none
+variables:
+- template: /.pipelines/config/sub-b31e023c78b8.config.yml
+- template: /.pipelines/config/global.config.yml
+- ${{ if eq(parameters.base, true) }}:
+  - name: base
+    value: yes
+- ${{ if eq(parameters.planDeploy, true) }}:
+  - name: planDeploy
+    value: yes
+- ${{ if eq(parameters.terraformDestroy, true) }}:
+  - name: terraformDestroy
+    value: yes
+
+stages:
+- template: /.pipelines/01_stage/lz_destroy.yml
+  parameters:
+    pool: ${{ variables.SVC_CONNECTION }}
+    terraformVersion: $(TERRAFORM_VERSION)

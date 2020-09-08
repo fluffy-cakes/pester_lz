@@ -1,0 +1,10 @@
+parameters:
+  vaultName: ""
+  svcConnection: ""
+
+steps:
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: ${{ parameters.svcConnection }}
+    KeyVaultName: ${{ parameters.vaultName }}
+  displayName: "Download Azure Key Vault secrets"

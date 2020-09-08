@@ -1,0 +1,83 @@
+parameters:
+- name: intFuncOnly
+  displayName: Run Functional Check Only
+  type: boolean
+  default: false
+
+- name: infraOnly
+  displayName: Run tfstate Check Only
+  type: boolean
+  default: false
+
+
+name: IntTest
+
+pr: none
+schedules:
+- cron: "30 7 * * *"
+  always: true
+  branches:
+    include:
+    - master
+  displayName: MorningTest
+trigger: none
+variables:
+- ${{ if eq(parameters.infraOnly, true) }}:
+  - name: infraOnly
+    value: yes
+- ${{ if eq(parameters.intFuncOnly, true) }}:
+  - name: intFuncOnly
+    value: yes
+
+stages:
+- stage: Hub
+  displayName: "Hub"
+  variables:
+  - template: /.pipelines/config/sub-b31e023c78b8.config.yml
+  - template: /.pipelines/config/global.config.yml
+  jobs:
+  - template: /.pipelines/02_jobs/pester_hub.yml
+    parameters:
+      pool:
+        name: myPool
+      vaultName: ${{ variables.VAULT_NAME }}
+      svcConnection: ${{ variables.SVC_CONNECTION }}
+
+# Wait for all other stages to run and then POST the results
+- stage: IntTestAPI
+  displayName: POST Pester Results
+  condition: always() # always run; stages are run for each subscription, so you want to POST the results of those that ran even if one fails
+  dependsOn:
+  - Hub # create a list for multiple hubs/spokes
+  variables:
+  - template: /.pipelines/config/sub-b31e023c78b8.config.yml
+  jobs:
+  - job: POST
+    pool:
+      name: myPool
+    workspace:
+      clean: all
+    steps:
+
+    - task: AzureKeyVault@1
+      inputs:
+        azureSubscription: ${{ variables.SVC_CONNECTION }}
+        KeyVaultName: ${{ variables.VAULT_NAME }}
+      displayName: "Download Azure Key Vault secrets"
+
+    - task: PowerShell@2
+      displayName: "Invoke API POST"
+      env:
+        ARMCLIENTSECRET: $(ARMCLIENTSECRET)
+      inputs:
+        arguments: >-
+          -clientId "$(ARMCLIENTID)"
+          -environment "$(TERRAFORM_ENVIRONMENT)"
+          -location "$(TERRAFORM_LOCATION)"
+          -pat "$(AZDOPATAPI)"
+          -subscriptionName "$(ENVIRONMENT_NAME)"
+          -tenantId "$(ARMTENANTID)"
+        filePath: $(System.DefaultWorkingDirectory)/scripts/pester/test-results.ps1
+        pwsh: true
+        targetType: filePath
+        workingDirectory: $(System.DefaultWorkingDirectory)/scripts/pester/

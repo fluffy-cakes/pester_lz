@@ -1,0 +1,36 @@
+parameters:
+  pool: {}
+  vaultName: ""
+  svcConnection: ""
+
+jobs:
+# Pester_Int_Func
+- template: /.pipelines/02_jobs/pester_int_func.yml
+  parameters:
+    condition: |
+      and
+      (
+        ne(canceled(), true),
+        ne(failed(), true),
+        ne(variables['infraOnly'], 'yes')
+      )
+    hubOrSpoke: hub
+    pool: ${{ parameters.pool }}
+    vaultName: ${{ parameters.vaultName }}
+    svcConnection: ${{ parameters.svcConnection }}
+
+# Pester_Infra
+- template: /.pipelines/02_jobs/pester_infra.yml
+  parameters:
+    condition: |
+      and
+      (
+        ne(canceled(), true),
+        ne(failed(), true),
+        ne(variables['intFuncOnly'], 'yes'),
+        in(dependencies.Pester_Int_Func.result, 'Succeeded', 'Skipped')
+      )
+    dependsOn: Pester_Int_Func
+    pool: ${{ parameters.pool }}
+    vaultName: ${{ parameters.vaultName }}
+    svcConnection: ${{ parameters.svcConnection }}

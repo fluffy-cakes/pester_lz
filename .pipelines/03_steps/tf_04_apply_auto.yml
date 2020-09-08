@@ -1,0 +1,28 @@
+parameters:
+  terraformRootFolder: ""
+
+steps:
+- script: |
+    cd $SYSTEM_DEFAULTWORKINGDIRECTORY/${{ parameters.terraformRootFolder }}
+    echo "Listing files in directory"
+    pwd
+    ls -la
+    echo
+    echo
+    echo "terraform apply tfplan"
+    terraform apply tfplan
+    result=$?
+    if [ $result != 0 ]; then
+      exit 1
+    else
+      rm -f tfplan
+    fi
+  condition: |
+    and
+      (
+        ne(canceled(), true),
+        ne(failed(), true),
+        ne(variables.planDeploy, 'yes'),
+        eq(variables.planExitCode, '2')
+      )
+  displayName: "Terraform - Apply ~${{ parameters.terraformRootFolder }}"

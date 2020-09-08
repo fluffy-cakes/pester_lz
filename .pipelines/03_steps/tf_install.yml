@@ -1,0 +1,8 @@
+parameters:
+  terraformVersion: ""
+
+steps:
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
+  inputs:
+    terraformVersion: ${{ parameters.terraformVersion }}
+  displayName: "Install Terraform"

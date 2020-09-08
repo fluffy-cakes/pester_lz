@@ -1,0 +1,3 @@
+variables:
+  TERRAFORM_BACKEND_CONTAINER_NAME: "tfstate"
+  TERRAFORM_VERSION: "0.13.0"

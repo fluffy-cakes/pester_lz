@@ -1,0 +1,9 @@
+parameters:
+  terraformRootFolder: ""
+
+steps:
+- script: |
+    cd $SYSTEM_DEFAULTWORKINGDIRECTORY/${{ parameters.terraformRootFolder }}
+    pwd
+    terraform validate
+  displayName: "Terraform - Validate ~${{ parameters.terraformRootFolder }}"

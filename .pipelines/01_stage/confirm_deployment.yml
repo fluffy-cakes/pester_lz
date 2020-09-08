@@ -1,0 +1,37 @@
+parameters:
+  module: ""
+  pipelineJob: ""
+  pool: {}
+  prd: ""
+  terraformVersion: ""
+
+
+stages:
+- stage: Plan_${{ parameters.module }}
+  displayName: "Plan ${{ parameters.module }}"
+  jobs:
+  - template: /.pipelines/02_jobs/${{ parameters.pipelineJob }}
+    parameters:
+      extraVnet: ${{ parameters.extraVnet }}
+      module: plan_${{ parameters.module }}
+      pool: ${{ parameters.pool }}
+      terraformBackendContainerName: $(TERRAFORM_BACKEND_CONTAINER_NAME)
+      terraformBackendStorageName: $(TERRAFORM_BACKEND_STORAGE_NAME)
+      terraformVersion: ${{ parameters.terraformVersion }}
+      vaultName: $(VAULT_NAME)
+      svcConnection: $(SVC_CONNECTION)
+
+- stage: Apply_${{ parameters.module }}
+  dependsOn: Plan_${{ parameters.module }}
+  displayName: "Apply ${{ parameters.module }}"
+  jobs:
+  - template: /.pipelines/02_jobs/${{ parameters.pipelineJob }}
+    parameters:
+      extraVnet: ${{ parameters.extraVnet }}
+      module: apply_${{ parameters.module }}
+      pool: ${{ parameters.pool }}
+      terraformBackendContainerName: $(TERRAFORM_BACKEND_CONTAINER_NAME)
+      terraformBackendStorageName: $(TERRAFORM_BACKEND_STORAGE_NAME)
+      terraformVersion: ${{ parameters.terraformVersion }}
+      vaultName: $(VAULT_NAME)
+      svcConnection: $(SVC_CONNECTION)

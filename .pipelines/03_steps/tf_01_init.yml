@@ -1,0 +1,16 @@
+parameters:
+  terraformBackendContainerName: ""
+  terraformBackendKeyName: ""
+  terraformBackendStorageName: ""
+  terraformRootFolder: ""
+
+steps:
+- script: |
+    cd $SYSTEM_DEFAULTWORKINGDIRECTORY/${{ parameters.terraformRootFolder }}
+    pwd
+    terraform init \
+      -backend-config=access_key=$(TERRAFORMBACKENDACCESSKEY) \
+      -backend-config=container_name=${{ parameters.terraformBackendContainerName }} \
+      -backend-config=key=${{ parameters.terraformBackendKeyName }} \
+      -backend-config=storage_account_name=${{ parameters.terraformBackendStorageName }}
+  displayName: "Terraform - Init ~${{ parameters.terraformRootFolder }}"

@@ -1,0 +1,7 @@
+variables:
+  ENVIRONMENT_NAME: "Visual Studio Enterprise – MPN"
+  SVC_CONNECTION: "sub-b31e023c78b8"
+  TERRAFORM_BACKEND_STORAGE_NAME: "pmackbackend"
+  TERRAFORM_ENVIRONMENT: "DEV"
+  TERRAFORM_LOCATION: "uksouth"
+  VAULT_NAME: "pmackkeyvault"

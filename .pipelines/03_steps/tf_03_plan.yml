@@ -1,0 +1,34 @@
+parameters:
+  terraformRootFolder: ""
+
+steps:
+- script: |
+    cd $SYSTEM_DEFAULTWORKINGDIRECTORY/${{ parameters.terraformRootFolder }}
+    pwd
+    echo "terraform plan -input=false -out=tfplan $(TFARMarray) $(TFtfvars) $(TFarray) -detailed-exitcode"
+    terraform plan -input=false -out=tfplan $(TFARMarray) $(TFtfvars) $(TFarray) -detailed-exitcode
+
+    RESULT=$?
+    if [ $RESULT -eq 0 ];then
+      echo '##vso[task.setvariable variable=planExitCode]0'
+      echo "No changes. Infrastructure is up-to-date!"
+    elif [ $RESULT -eq 1 ];then
+      echo '##vso[task.setvariable variable=planExitCode]1'
+      echo "Terraform plan has failed!"
+      exit 1
+    elif [ $RESULT -eq 2 ];then
+      echo '##vso[task.setvariable variable=planExitCode]2'
+      echo "Changes have been noticed!"
+      pwd
+      ls -la
+    else
+      echo "Terraform plan has failed!"
+      exit 1
+    fi
+  condition: |
+    and
+    (
+      ne(failed(), true),
+      ne(variables.terraformDestroy, 'yes')
+    )
+  displayName: "Terraform - Plan ~${{ parameters.terraformRootFolder }}"

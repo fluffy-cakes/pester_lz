@@ -1,0 +1,9 @@
+parameters:
+  terraformRootFolder: ""
+
+steps:
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish TF Artifact'
+  inputs:
+    targetPath: ${{ parameters.terraformRootFolder }}/tfplan
+    artifact: tfplan

@@ -1,0 +1,4 @@
+steps:
+- script: |
+    env | sort
+  displayName: "Debug - log of current env values"

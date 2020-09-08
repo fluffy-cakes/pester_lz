@@ -1,0 +1,33 @@
+parameters:
+- name: module
+  displayName: "Module to Deploy"
+  type: string
+  default: ""
+  values:
+  - base
+
+- name: terraformDestroy
+  displayName: "Destroy!"
+  type: boolean
+  default: false
+
+name: "$(BuildID) $(Date:yyyy-MM-dd HH-mm) UTC ~ (${{ parameters.module }})"
+
+pr: none
+trigger: none
+variables:
+- template: /.pipelines/config/sub-b31e023c78b8.config.yml
+- template: /.pipelines/config/global.config.yml
+- ${{ if eq(parameters.terraformDestroy, true) }}:
+  - name: terraformDestroy
+    value: yes
+
+
+stages:
+- template: /.pipelines/01_stage/confirm_deployment.yml
+  parameters:
+    terraformVersion: $(TERRAFORM_VERSION)
+
+    ${{ if eq(parameters.module, 'base') }}:
+      module: base
+      pipelineJob: lz_base.yml

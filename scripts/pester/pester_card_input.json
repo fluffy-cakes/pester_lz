@@ -1,0 +1,67 @@
+{
+    "type": "message",
+    "attachments": [
+        {
+            "contentType": "application/vnd.microsoft.card.adaptive",
+            "contentUrl": null,
+            "content": {
+                "$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
+                "type": "AdaptiveCard",
+                "version": "1.0",
+                "body": [
+                    {
+                        "type": "Container",
+                        "items": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Pester Results",
+                                "weight": "bolder",
+                                "size": "medium"
+                            },
+                            {
+                                "type": "ColumnSet",
+                                "columns": [
+                                    {
+                                        "type": "Column",
+                                        "width": "auto",
+                                        "items": [
+                                            {
+                                                "type": "Image",
+                                                "url": "https://i.pinimg.com/originals/d7/d7/33/d7d7335b1ba2076bb7dc9c42ae3bb86d.jpg",
+                                                "size": "small",
+                                                "style": "person",
+                                                "altText": "Pester Bot"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "TextBlock",
+                                                "text": "Pester Bot",
+                                                "weight": "bolder",
+                                                "wrap": true
+                                            },
+                                            {
+                                                "type": "TextBlock",
+                                                "spacing": "none",
+                                                "text": "\"I has run Pester!\"",
+                                                "isSubtle": true,
+                                                "wrap": true
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "Container"
+                    }
+                ]
+            }
+        }
+    ]
+}
