@@ -401,6 +401,8 @@ By default, Azure DevOps only displays the failed results, but you can view all 
 
 This pipeline includes the POSTing of Pester results to the deployed Event Hub; useful for outputting to consumer groups such as Elastic. The script itself (`scripts\pester\test-results.ps1`) is commented fairly well, and there shouldn't be anything that needs clarification. If you're not using the naming standard in this repo, then you will need remove the code for it on lines `34-39`, and then update the names on lines `140-142`. This pipeline will also need to have an Azure DevOps Personal Access Token (PAT) that has the following rights; `Build (Read)`; `Release (Read)`; `Test Management (Read)`.
 
+Note: you will also need to change any reference of my Azure DevOps organisation (*fluffypaulmackinnon)* to your own on all of the calling API requests of `scripts\pester\test-results.ps1` and `scripts\pester\test-results-w-teams.ps1`.
+
 Import the pipeline `.pipelines\00_pipes\pester_testing.yml` into Azure DevOps as a new YAML pipeline, and name it `Pester Testing`. The name of this pipeline is required as stated, but if you wish to change the name, then you will need to change the name on line `53` of  `scripts\pester\test-results.ps1` and `scripts\pester\test-results-w-teams.ps1`.
 
 Once imported, you can run either the basic integration testing only, or the infrastructure testing only by checking either box. If neither box is checked, both will run.
