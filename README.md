@@ -10,10 +10,10 @@ To demonstrate Pester functioning, I have built a mini-landing zone which you ca
 
 You will need to:
 
-1. Create a service connection linking to your subscription, using the naming convention `sub-<last-12-digits-of-sub-id>`. As shown [here](https://github.com/fluffy-cakes/landing_zone/tree/master/docs/images/azdo_setup/01.png)
-2. Create an Agent pool called `myPool`. As shown [link](https://github.com/fluffy-cakes/landing_zone/tree/master/docs/images/azdo_setup/03.png)
+1. Create a service connection linking to your subscription, using the naming convention `sub-<last-12-digits-of-sub-id>`. As shown [here](https://github.com/fluffy-cakes/pester_lz/tree/master/docs/images/azdo_setup/01.png)
+2. Create an Agent pool called `myPool`. As shown [link](https://github.com/fluffy-cakes/pester_lz/tree/master/docs/images/azdo_setup/03.png)
    1. Create a Personal Access Token that has the following rights; `Agent Pools (Read & manage)`
-3. Create a backend storage account and key vault to store the state files and subscription credential secrets. As shown [here](https://github.com/fluffy-cakes/landing_zone/tree/master/docs/images/azure/01.png), [here](https://github.com/fluffy-cakes/landing_zone/tree/master/docs/images/azure/02.png), [here](https://github.com/fluffy-cakes/landing_zone/tree/master/docs/images/azure/03.png), and [here](https://github.com/fluffy-cakes/landing_zone/tree/master/docs/images/azure/04.png).
+3. Create a backend storage account and key vault to store the state files and subscription credential secrets. As shown [here](https://github.com/fluffy-cakes/pester_lz/tree/master/docs/images/azure/01.png), [here](https://github.com/fluffy-cakes/pester_lz/tree/master/docs/images/azure/02.png), [here](https://github.com/fluffy-cakes/pester_lz/tree/master/docs/images/azure/03.png), and [here](https://github.com/fluffy-cakes/pester_lz/tree/master/docs/images/azure/04.png).
    1. `ARMCLIENTID` = a service principal ID with contributor rights on the subscription
    2. `ARMCLIENTSECERT` = the SPs secret
    3. `ARMSUBSCRIPTIONID` = the subscription ID being deployed to
@@ -21,10 +21,10 @@ You will need to:
    5. `TERRAFORMBACKENDACCESSKEY` = the storage account access key where the tfstate file is kept
    6. `AZDOPAT` = the personal access token as mentioned above
    7. `AZDOPATAPI` = a personal access token with API rights for when POSTing to Event Hub (discussed further below)
-4. Update the configuration YAML file that points to these values. As shown [here](https://github.com/fluffy-cakes/landing_zone/tree/master/docs/images/pipes/22.png). 
+4. Update the configuration YAML file that points to these values. As shown [here](https://github.com/fluffy-cakes/pester_lz/tree/master/docs/images/pipes/22.png). 
    1. Also update the Name of the subscription to the same GUI name that shows in your own subscription. The script works on the Name, not the ID, of the subscription (perhaps I should update/change this).
 5. Create Azure DevOps pipelines for the following YAML files:
-   If you are unsure how to do this, use the screenshots in this folder as a guide, [here](https://github.com/fluffy-cakes/landing_zone/tree/master/docs/images/pipes)
+   If you are unsure how to do this, use the screenshots in this folder as a guide, [here](https://github.com/fluffy-cakes/pester_lz/tree/master/docs/images/pipes)
    1. `.pipelines\00_pipes\deploy_base.yml`
    2. `.pipelines\00_pipes\destroy_base.yml`
    3. `.pipelines\00_pipes\pester_testing.yml`
