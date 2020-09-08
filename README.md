@@ -4,6 +4,12 @@ For those that don't know, Pester is an extremely simple and useful PowerShell t
 
 I am basing the examples below of Pester using Azure DevOps for the pipeline runs, and that the state files for Terraform are kept in Azure storage account in a container called `tfstate`; however these practices could be altered and applied anywhere.
 
+Before we get started, there is one important thing to note. Pester is a PowerShell module, but that doesn’t mean you can only run PowerShell commands, or that the script has to run on a Windows box. For all of my Pester testing I have run this on either an Ubuntu or RedHat machine with PowerShell 7.x installed, using Azure DevOps tasks to initiate it. In previous roles I have even used commands from Docker, JQ, and even SSH’d onto another box to run a command, grab the resulting output of that command, and use Pester to assert the result. Basically, if you’re on a Linux box, in PowerShell, and can type a command of any sort and get a result, then Pester can assert against it.
+
+Here’s an example snapshot of just that:
+
+<img src=".\docs\images\azure\06.png" style="zoom:50%;" />
+
 ## Azure DevOps Setup
 
 To demonstrate Pester functioning, I have built a mini-landing zone which you can clone from this repo: asdf
@@ -240,7 +246,7 @@ File: scripts\pester\tfstate-check\tfstate-check.ps1
 70: }
 ```
 
-Here we finally get to the crucial point of the script, and that's to loop through each state file that has been downloaded, convert it to JSON, and then initiate Pester against each type of resource found. The great thing about Pester being PowerShell, is that you can use native commands such as `IF` statements to only include Pester tests on things that actually exist.
+Here we finally get to the crucial point of the script, and that's to loop through each state file that has been downloaded, convert it to JSON, and then initiate Pester against each type of resource found. The great thing about Pester being PowerShell, is that you can use native `IF` statements to only include Pester tests on things that actually exist.
 
 **On lines...**
 
@@ -277,6 +283,10 @@ File: scripts\pester\tfstate-check\functions.ps1
 ```
 
 When PowerShell finds a resource there could be more than just one listed in the state file of that resource list, thus we need to run a loop on each one. Then, by simply using an existing state file to compare what is written to state, and what you can test against, we grab the values of those and attaching them to variables on the left. So for example, `$nameEvh` has been given the value of whatever name is shown in the state file by using dot-notation. From experience, the majority of the resources are written in the example above, and from versions 11 to 13 of Terraform, little has changed in how the state file is written. This is handy for us, as it means our PowerShell script is flexible and requires little maintenance once we created a function.
+
+I find it easy to load a state file up on my screen to compare it against, and seeing as though PowerShell objects and JSON are comparable, we can use the same dot-notation to get to the value required. As you can see, it’s easy to understand how the for_each loops and do-notation work when comparing against a state file.
+
+<img src=".\docs\images\azure\05.png" style="zoom:50%;" />
 
 Once you have grabbed all the values you wish to test against (line `04-08`), then we can use basic Azure PowerShell commands to look up the resource we want to test against. On the projects I have worked on we have one service principal per subscription, and thus there is little need for us to define Resource Group or change the scope of the Subscription the service principal is running on to retrieve the information of the resource. You might find that some of the functions do not specify a Resource Group, but if they do need to, you will need to modify it.
 
@@ -381,7 +391,7 @@ File: .pipelines\02_jobs\pester_infra.yml
 57:     displayName: "Publish Results"
 ```
 
-There's nothing hard about outputting the results to Azure DevOps so it can easily be viewed in pretty diagrams by viewing the pipeline run itself:
+There's nothing hard about outputting the results to Azure DevOps, it can easily be viewed in pretty diagrams by viewing the pipeline run itself:
 
 <img src=".\docs\images\pipes\14.png" style="zoom:50%;" />
 
