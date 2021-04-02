@@ -228,6 +228,53 @@ foreach ($file in $filelist) {
                     Write-Host $resource.type
                     check_tf_azure_virtual_network_peering($resource)
             }
-        }
+
+            if(($resource.type -eq "azurerm_dns_zone") `
+            -and ($resource.mode -ne "data")) {
+                Write-Host $resource.type
+                check_tf_azurerm_dns_zone($resource)
+            }
+
+            if(($resource.type -eq "azurerm_private_dns_zone") `
+                -and ($resource.mode -ne "data")) {
+                    Write-Host $resource.type
+                    check_tf_azurerm_private_dns_zone($resource)
+            }
+
+            if(($resource.type -eq "azurerm_private_dns_zone_virtual_network_link") `
+                -and ($resource.mode -ne "data")) {
+                    Write-Host $resource.type
+                    check_tf_azurerm_private_dns_zone_virtual_network_link($resource)
+            }
+
+            if(($resource.type -eq "azurerm_firewall_nat_rule_collection") `
+                -and ($resource.mode -ne "data")) {
+                    $resourceTypes += $resource.type
+                    check_tf_azure_fw_nat_rules($resource)
+            }
+
+            if(($resource.type -eq "azurerm_bastion_host") `
+                -and ($resource.mode -ne "data")) {
+                    $resourceTypes += $resource.type
+                    check_tf_azurerm_bastion_host($resource)
+            }
+
+            if(($resource.type -eq "azurerm_application_gateway") `
+                -and ($resource.mode -ne "data")) {
+                    Write-Host $resource.type
+                    check_tf_azurerm_application_gateway($resource)
+            }
+
+            if(($resource.type -eq "azurerm_dns_a_record") `
+                -and ($resource.mode -ne "data")) {
+                    Write-Host $resource.type
+                    check_tf_azurerm_dns_a_record($resource)
+            }
+
+            if(($resource.type -eq "azurerm_dns_caa_record") `
+                -and ($resource.mode -ne "data")) {
+                    Write-Host $resource.types
+                    check_tf_azurerm_dns_caa_record($resource)
+            }
     }
 }

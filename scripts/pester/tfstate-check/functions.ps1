@@ -42,7 +42,7 @@ function check_tf_azure_fw ($resource) {
         $nameFw     = $instance.attributes.name
         $fwLocation = $instance.attributes.location
         $fwRg       = $instance.attributes.resource_group_name
-        $fw         = Get-AzFirewall -Name $nameFw
+        $fw         = Get-AzFirewall -Name $nameFw -ResourceGroupName $fwRg
 
         It "$nameFw should be provisioned" {
             $fw.Location          | Should -Be $fwLocation
@@ -62,7 +62,8 @@ function check_tf_azure_fw_rules ($resource) {
         $fwRulePriority   = $instance.attributes.priority
         $fwRuleId         = $instance.attributes.id
         $fwRuleFwName     = $fwRuleId.split("/")[-3]
-        $fwRuleCollection = Get-AzFirewall -Name $fwRuleFwName | Select-Object -ExpandProperty NetworkRuleCollections | Where-Object {$_.Name -eq $nameFwRule}
+        $fwRg             = $instance.attributes.resource_group_name
+        $fwRuleCollection = Get-AzFirewall -Name $fwRuleFwName -ResourceGroupName $fwRg | Select-Object -ExpandProperty NetworkRuleCollections | Where-Object {$_.Name -eq $nameFwRule}
 
         It "$nameFwRule should be provisioned" {
             $fwRuleCollection.Action.Type | Should -Be $fwRuleAction
@@ -268,6 +269,7 @@ function check_tf_azure_nsg ($resource) {
     foreach($instance in $resource.instances) {
 
         $nameNsg            = $instance.attributes.name
+        $rgNsg              = $instance.attributes.resource_group_name
 
         foreach($rule in $instance.attributes.security_rule) {
 
@@ -276,17 +278,22 @@ function check_tf_azure_nsg ($resource) {
             $ruleDestAdd    = $rule.destination_address_prefix
             $ruleDestAddX   = $rule.destination_address_prefixes
             $ruleDestPort   = $rule.destination_port_range
+            $ruleDestPortX  = $rule.destination_port_ranges
             $ruleSourceAdd  = $rule.source_address_prefix
             $ruleSourceAddX = $rule.source_address_prefixes | Sort-Object
-            $rule           = Get-AzNetworkSecurityGroup -Name $nameNsg | Get-AzNetworkSecurityRuleConfig -Name $nameRule
+            $rule           = Get-AzNetworkSecurityGroup -Name $nameNsg -ResourceGroupName $rgNsg | Get-AzNetworkSecurityRuleConfig -Name $nameRule
 
             It "Rule $nameRule for `"$nameNsg`" should be properly configured" {
                 $rule.Access                       | Should -Be $ruleAccess
-                $rule.DestinationPortRange         | Should -Be $ruleDestPort
                 if ($ruleDestAddX.count -gt 0) {
                     $rule.DestinationAddressPrefix | Sort-Object | Should -Be $ruleDestAddX
                     } else {
                     $rule.DestinationAddressPrefix | Should -Be $ruleDestAdd
+                }
+                if ($ruleDestPortX.count -gt 0) {
+                    $rule.DestinationPortRange | Sort-Object | Should -Be $ruleDestPortX
+                    } else {
+                    $rule.DestinationPortRange | Should -Be $ruleDestPort
                 }
                 if ($ruleSourceAddX.count -gt 0) {
                     $rule.SourceAddressPrefix      | Sort-Object | Should -Be $ruleSourceAddX
@@ -410,11 +417,12 @@ function check_tf_azure_public_ip ($resource) {
     foreach ($instance in $resource.instances) {
 
         $namePubip     = $instance.attributes.name
+        $pubipRg       = $instance.attributes.resource_group_name
         $pubipAddress  = $instance.attributes.ip_address
         $pubipLocation = $instance.attributes.location
         $pubipRg       = $instance.attributes.resource_group_name
         $pubipSku      = $instance.attributes.sku
-        $pubip         = Get-AzPublicIpAddress -Name $namePubip
+        $pubip         = Get-AzPublicIpAddress -Name $namePubip -ResourceGroupName $pubipRg
 
         It "$namePubip should be provisioned" {
             $pubip.IpAddress         | Should -Be $pubipAddress
@@ -572,11 +580,12 @@ function check_tf_azure_subnet ($resource) {
     foreach ($instance in $resource.instances) {
 
         $nameSubnet     = $instance.attributes.name
+        $subnetrg       = $instance.attributes.resource_group_name
         $subnetAddress  = $instance.attributes.address_prefix
         $subnetNsg      = $instance.attributes.network_security_group_id
         $subnetRouteTb  = $instance.attributes.route_table_id
         $subnetVnet     = $instance.attributes.virtual_network_name
-        $subnet         = Get-AzVirtualNetwork  -Name $subnetVnet | Get-AzVirtualNetworkSubnetConfig | Where-Object {$_.Name -eq $nameSubnet}
+        $subnet         = Get-AzVirtualNetwork  -Name $subnetVnet -ResourceGroupName $subnetrg | Get-AzVirtualNetworkSubnetConfig | Where-Object {$_.Name -eq $nameSubnet}
 
         It "$nameSubnet should be provisioned" {
             $subnet.AddressPrefix               | Should -Be $subnetAddress
@@ -694,7 +703,8 @@ function check_tf_azure_virtual_network ($resource) {
         $vnetLocation = $instance.attributes.location
         $vnetAddress  = $instance.attributes.address_space | Sort-Object
         $vnetDNS      = $instance.attributes.dns_servers | Sort-Object
-        $vnet         = Get-AzVirtualNetwork -Name $nameVnet
+        $vnetRg       = $instance.attributes.resource_group_name
+        $vnet         = Get-AzVirtualNetwork -Name $nameVnet -ResourceGroupName $vnetRg
 
         It "$nameVnet should be provisioned" {
             $vnet.AddressSpace.AddressPrefixes | Sort-Object | Should -be $vnetAddress
@@ -747,6 +757,208 @@ function check_tf_azure_virtual_network_peering ($resource) {
             $peer.ResourceGroupName         | Should -Be $peerRg
             $peer.UseRemoteGateways         | Should -Be $peerGw
             $peer.VirtualNetworkName        | Should -Be $peerVnet
+        }
+    }
+}
+
+
+
+function check_tf_azurerm_dns_zone ($resource) {
+    foreach($instance in $resource.instances) {
+
+        $nameDnsZone = $instance.attributes.name
+        $DnsZoneRg   = $instance.attributes.resource_group_name
+        $DnsZone     = Get-AzDnsZone -Name $nameDnsZone -ResourceGroupName $DnsZoneRg
+
+        It "$nameDnsZone should be provisioned" {
+            $DnsZone.ZoneType | Should -Be "Public"
+            $DnsZone.NameServers.Count | Should -Be "4"
+        }
+    }
+}
+
+
+
+function check_tf_azurerm_private_dns_zone ($resource) {
+    foreach($instance in $resource.instances) {
+
+        $nameprivDnsZone = $instance.attributes.name
+        $privDnsZoneRg   = $instance.attributes.resource_group_name
+        $privDnsZone     = Get-AzPrivateDnsZone -Name $nameprivDnsZone -ResourceGroupName $privDnsZoneRg
+
+        It "$nameprivDnsZone should be provisioned" {
+            $privDnsZone | Should -Not -Be $null
+        }
+    }
+}
+
+
+
+function check_tf_azurerm_private_dns_zone_virtual_network_link ($resource) {
+    foreach($instance in $resource.instances) {
+
+        $nameprivDnsZoneLink   = $instance.attributes.name
+        $privDnsZoneLinkRg     = $instance.attributes.resource_group_name
+        $privDnsZoneLinkZone   = $instance.attributes.private_dns_zone_name
+        $privDnsZoneLinkVnetId = $instance.attributes.virtual_network_id
+        $privDnsZoneLinkRegEna = $instance.attributes.registration_enabled
+        $privDnsZoneLink       = Get-AzPrivateDnsVirtualNetworkLink -Name $nameprivDnsZoneLink -ResourceGroupName $privDnsZoneLinkRg -ZoneName $privDnsZoneLinkZone
+
+        It "$nameprivDnsZoneLink should be provisioned" {
+            $privDnsZoneLink.ProvisioningState | Should -Be "Succeeded"
+            $privDnsZoneLink.VirtualNetworkLinkState | Should -Be "Completed"
+            $privDnsZoneLink.VirtualNetworkId | Should -Be $privDnsZoneLinkVnetId
+            [String]$privDnsZoneLink.RegistrationEnabled.ToString().ToLower() | Should -Be $privDnsZoneLinkRegEna
+        }
+    }
+}
+
+
+
+function check_tf_azure_fw_nat_rules ($resource) {
+    foreach($instance in $resource.instances) {
+
+        $nameFwRule       = $instance.attributes.name
+        $fwRuleAction     = $instance.attributes.action
+        $fwRulePriority   = $instance.attributes.priority
+        $fwRuleId         = $instance.attributes.id
+        $fwRuleFwName     = $instance.attributes.azure_firewall_name
+        $fwRuleRg         = $instance.attributes.resource_group_name
+        $fwRuleCollection = Get-AzFirewall -Name $fwRuleFwName -ResourceGroupName $fwRuleRg | Select-Object -ExpandProperty NatRuleCollections | Where-Object {$_.Name -eq $nameFwRule}
+
+        It "$nameFwRule should be provisioned" {
+            $fwRuleCollection.Action.Type | Should -Be $fwRuleAction
+            $fwRuleCollection.Priority    | Should -Be $fwRulePriority
+        }
+
+        foreach ($rule in $instance.attributes.rule) {
+
+            $nameRule            = $rule.name
+            $ruleDestinationAdd  = $rule.destination_addresses | Sort-Object
+            $ruleDestinationPort = $rule.destination_ports     | Sort-Object
+            $ruleProtocols       = $rule.protocols             | Sort-Object
+            $ruleSourceAdd       = $rule.source_addresses      | Sort-Object
+            $rule                = $fwRuleCollection.Rules     | Where-Object {$_.Name -eq $nameRule}
+
+            It "$nameRule for `"$nameFwRule`" should be configured" {
+                $rule.DestinationAddresses | Sort-Object | Should -Be $ruleDestinationAdd
+                $rule.DestinationPorts     | Sort-Object | Should -Be $ruleDestinationPort
+                $rule.Protocols            | Sort-Object | Should -Be $ruleProtocols
+                $rule.SourceAddresses      | Sort-Object | Should -Be $ruleSourceAdd
+            }
+        }
+    }
+}
+
+
+
+function check_tf_azurerm_bastion_host ($resource) {
+    foreach($instance in $resource.instances) {
+
+        $nameBastionHost   = $instance.attributes.name
+        $BastionHostRg     = $instance.attributes.resource_group_name
+        $BastionHostLoc    = $instance.attributes.location
+        $BastionHost       = Get-AzBastion -Name $nameBastionHost -ResourceGroupName $BastionHostRg
+
+        It "$nameBastionHost should be provisioned" {
+            $BastionHost.ProvisioningState | Should -Be "Succeeded"
+            $BastionHost.Location | Should -Be $BastionHostLoc
+            $BastionHost.IpConfigurations[0].ProvisioningState | Should -Be "Succeeded"
+        }
+    }
+}
+
+
+
+function check_tf_azurerm_application_gateway ($resource) {
+    foreach($instance in $resource.instances) {
+
+        $nameAppGw     = $instance.attributes.name
+        $appGwRg       = $instance.attributes.resource_group_name
+        $appGwlocation = $instance.attributes.location
+        $appGw         = Get-AzApplicationGateway -Name $nameAppGw -ResourceGroupName $appGwRg
+
+        It "$nameAppGw should be provisioned" {
+            $appGw.ProvisioningState | Should -Be 'Succeeded'
+            $appGw.OperationalState | Should -Be 'Running'
+            $appGw.Location | Should -Be $appGwlocation
+        }
+
+        foreach ($ip in $instance.attributes.frontend_ip_configuration) {
+
+            $nameIp         = $ip.name
+            $ipPrivate      = $ip.private_ip_address            | Sort-Object
+            $ipPrivateAlloc = $ip.private_ip_address_allocation | Sort-Object
+            $ipPublic       = $ip.public_ip_address_id          | Sort-Object
+            $ipSubnetId     = $ip.subnet_id                     | Sort-Object
+            $ip             = $appGw.FrontendIPConfigurations   | Where-Object {$_.Name -eq $nameIp}
+
+            if( $ipPrivate) {
+                It "$nameIp for `"$nameAppGw`" should be configured" {
+                    $ip.ProvisioningState | Should -Be 'Succeeded'
+                    $ip.PrivateIPAddress | Sort-Object | Should -Be $ipPrivate
+                    $ip.PrivateIPAllocationMethod | Sort-Object | Should -Be $ipPrivateAlloc
+                    $ip.Subnet.Id | Sort-Object | Should -Be $ipSubnetId
+                }
+            }
+            else {
+                It "$nameIp for `"$nameAppGw`" should be configured" {
+                    $ip.ProvisioningState | Should -Be 'Succeeded'
+                    $ip.PublicIPAddress | Sort-Object | Should -Be $ipPublic
+                }
+            }
+        }
+    }
+}
+
+
+
+function check_tf_azurerm_dns_a_record ($resource) {
+    foreach($instance in $resource.instances) {
+
+        $nameARecord   = $instance.attributes.name
+        $ARecordRg     = $instance.attributes.resource_group_name
+        $ARecordZN     = $instance.attributes.zone_name
+        $ARecordTtl    = $instance.attributes.ttl
+        $ARecord       = Get-AzDnsRecordSet -ZoneName $ARecordZN -ResourceGroupName $ARecordRg -Name $nameARecord -RecordType 'A'
+
+        It "$nameARecord should be provisioned" {
+            $ARecord.ProvisioningState | Should -Be "Succeeded"
+            $ARecord.Ttl | Should -Be $ARecordTtl
+        }
+
+        foreach ($record in $instance.attributes.records) {
+            $ip = ($ARecord.Records | Where-Object {$_.Ipv4Address -eq $record}).Ipv4Address
+
+            It "$ip for `"$nameARecord`" should be configured" {
+                $ip | Should -Be $record
+            }
+        }
+    }
+}
+
+
+
+function check_tf_azurerm_dns_caa_record ($resource) {
+    foreach($instance in $resource.instances) {
+
+        $nameCAARecord   = $instance.attributes.name
+        $CAARecordRg     = $instance.attributes.resource_group_name
+        $CAARecordZN     = $instance.attributes.zone_name
+        $CAARecordTtl    = $instance.attributes.ttl
+        $CAARecord       = Get-AzDnsRecordSet -ZoneName $CAARecordZN -ResourceGroupName $CAARecordRg -Name $nameCAARecord -RecordType 'CAA'
+
+        It "$nameCAARecord should be provisioned" {
+            $CAARecord.ProvisioningState | Should -Be "Succeeded"
+            $CAARecord.Ttl | Should -Be $CAARecordTtl
+        }
+
+        foreach ($record in $instance.attributes.record) {
+            $val = ($CAARecord.Records | Where-Object {$_.Value -eq $record.value}).Value
+
+            It "$val for `"$nameCAARecord`" should be configured" {
+                $val | Should -Be $record.value
+            }
         }
     }
 }
