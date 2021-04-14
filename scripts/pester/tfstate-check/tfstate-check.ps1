@@ -282,3 +282,61 @@ foreach ($file in $filelist) {
         }
     }
 }
+
+
+# Imported function runs done by Switch statement, now. Will adjust when have time
+
+# foreach ($file in $filelist) {
+#     $infrastructure = Get-Content $file.name | ConvertFrom-Json
+#     $filename       = $file.name.split("/")[-1]
+#     Describe "Azure Landing Zone $filename" {
+#         foreach ($resource in ($infrastructure.resources | Where-Object { $_.mode -ne "data" })) {
+
+#             Write-Host $resource.type
+
+#             switch ($resource.type) {
+#                 "azurerm_application_insights"                               { check_tf_azure_app_insights                  ($resource)          }
+#                 "azurerm_app_service_plan"                                   { check_tf_azure_app_service_plan              ($resource)          }
+#                 "azurerm_dns_zone"                                           { check_tf_azure_dns                           ($resource)          }
+#                 "azurerm_eventhub"                                           { check_tf_azure_eventhub                      ($resource)          }
+#                 "azurerm_eventhub_namespace"                                 { check_tf_azure_eventhub_namespace            ($resource)          }
+#                 "azurerm_firewall"                                           { check_tf_azure_fw                            ($resource)          }
+#                 "azurerm_firewall_network_rule_collection"                   { check_tf_azure_fw_rules                      ($resource)          }
+#                 "azurerm_function_app"                                       { check_tf_azure_function_app                  ($resource)          }
+#                 "azurerm_key_vault"                                          { check_tf_azure_kv                            ($resource)          }
+#                 "azurerm_lb"                                                 { check_tf_azure_lb                            ($resource)          }
+#                 "azurerm_lb_backend_address_pool"                            { check_tf_azure_lb_backend_address_pool       ($resource)          }
+#                 "azurerm_lb_probe"                                           { check_tf_azure_lb_probe                      ($resource)          }
+#                 "azurerm_lb_rule"                                            { check_tf_azure_lb_rule                       ($resource)          }
+#                 "azurerm_log_analytics_workspace"                            { check_tf_azure_log_analytics_workspace       ($resource)          }
+#                 "azurerm_network_interface"                                  { check_tf_azure_network_interface             ($resource)          }
+#                 "azurerm_network_interface_backend_address_pool_association" { check_tf_azure_network_interface_association ($resource)          }
+#                 "azurerm_network_security_group"                             { check_tf_azure_nsg                           ($resource)          }
+#                 "azurerm_private_dns_zone"                                   { check_tf_azure_dns_private                   ($resource)          }
+#                 "azurerm_private_dns_a_record"                               { check_tf_azure_dns_private_record_a          ($resource)          }
+#                 "azurerm_private_dns_cname_record"                           { check_tf_azure_dns_private_record_cname      ($resource)          }
+#                 "azurerm_private_dns_zone_virtual_network_link"              { check_tf_azure_dns_private_vnet_link         ($resource)          }
+#                 "azurerm_policy_assignment"                                  { check_tf_azure_policy_assignment             ($resource)          }
+#                 "azurerm_policy_definition"                                  { check_tf_azure_policy_definition             ($resource)          }
+#                 "azurerm_policy_remediation"                                 { check_tf_azure_policy_remediation            ($resource)          }
+#                 "azurerm_public_ip"                                          { check_tf_azure_public_ip                     ($resource)          }
+#                 "azurerm_resource_group"                                     { check_tf_azure_resource_group                ($resource)          }
+#                 "azurerm_route_table"                                        { check_tf_azure_routes -namingReqs $namingReqs -resource $resource }
+#                 "azurerm_security_center_workspace"                          { check_tf_azure_security_center_workspace     ($resource)          }
+#                 "azurerm_storage_account"                                    { check_tf_azure_storage_account               ($resource)          }
+#                 "azurerm_subnet_network_security_group_association"          { check_tf_azure_nsg_subnet_association        ($resource)          }
+#                 "azurerm_subnet_route_table_association"                     { check_tf_azure_route_association             ($resource)          }
+#                 "azurerm_subnet"                                             { check_tf_azure_subnet                        ($resource)          }
+#                 "azurerm_virtual_machine"                                    { check_tf_azure_virtual_machine               ($resource)          }
+#                 "azurerm_virtual_machine_ext"                                { check_tf_azure_virtual_machine               ($resource)          }
+#                 "azurerm_virtual_machine_scale_set"                          { check_tf_azure_virtual_machine_scale_set     ($resource)          }
+#                 "azurerm_virtual_network"                                    { check_tf_azure_virtual_network               ($resource)          }
+#                 "azurerm_virtual_network_peering"                            {
+#                     if ($resource.instances.attributes.id.Contains($subscription)) {
+#                         check_tf_azure_virtual_network_peering ($resource)
+#                     }
+#                 }
+#             }
+#         }
+#     }
+# }
