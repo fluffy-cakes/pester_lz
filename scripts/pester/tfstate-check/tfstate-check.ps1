@@ -247,6 +247,9 @@ foreach ($file in $filelist) {
                     check_tf_azurerm_private_dns_zone_virtual_network_link($resource)
             }
 
+
+            # Below added by PR
+
             if(($resource.type -eq "azurerm_firewall_nat_rule_collection") `
                 -and ($resource.mode -ne "data")) {
                     $resourceTypes += $resource.type
@@ -276,5 +279,6 @@ foreach ($file in $filelist) {
                     Write-Host $resource.types
                     check_tf_azurerm_dns_caa_record($resource)
             }
+        }
     }
 }

@@ -734,6 +734,10 @@ function check_tf_azure_virtual_network ($resource) {
 
 
 
+# Below added by PR
+
+
+
 function check_tf_azure_virtual_network_peering ($resource) {
     foreach($instance in $resource.instances) {
 
@@ -798,17 +802,17 @@ function check_tf_azurerm_private_dns_zone_virtual_network_link ($resource) {
     foreach($instance in $resource.instances) {
 
         $nameprivDnsZoneLink   = $instance.attributes.name
-        $privDnsZoneLinkRg     = $instance.attributes.resource_group_name
-        $privDnsZoneLinkZone   = $instance.attributes.private_dns_zone_name
-        $privDnsZoneLinkVnetId = $instance.attributes.virtual_network_id
         $privDnsZoneLinkRegEna = $instance.attributes.registration_enabled
+        $privDnsZoneLinkRg     = $instance.attributes.resource_group_name
+        $privDnsZoneLinkVnetId = $instance.attributes.virtual_network_id
+        $privDnsZoneLinkZone   = $instance.attributes.private_dns_zone_name
         $privDnsZoneLink       = Get-AzPrivateDnsVirtualNetworkLink -Name $nameprivDnsZoneLink -ResourceGroupName $privDnsZoneLinkRg -ZoneName $privDnsZoneLinkZone
 
         It "$nameprivDnsZoneLink should be provisioned" {
-            $privDnsZoneLink.ProvisioningState | Should -Be "Succeeded"
-            $privDnsZoneLink.VirtualNetworkLinkState | Should -Be "Completed"
-            $privDnsZoneLink.VirtualNetworkId | Should -Be $privDnsZoneLinkVnetId
             [String]$privDnsZoneLink.RegistrationEnabled.ToString().ToLower() | Should -Be $privDnsZoneLinkRegEna
+            $privDnsZoneLink.ProvisioningState                                | Should -Be "Succeeded"
+            $privDnsZoneLink.VirtualNetworkId                                 | Should -Be $privDnsZoneLinkVnetId
+            $privDnsZoneLink.VirtualNetworkLinkState                          | Should -Be "Completed"
         }
     }
 }
@@ -820,9 +824,9 @@ function check_tf_azure_fw_nat_rules ($resource) {
 
         $nameFwRule       = $instance.attributes.name
         $fwRuleAction     = $instance.attributes.action
-        $fwRulePriority   = $instance.attributes.priority
-        $fwRuleId         = $instance.attributes.id
         $fwRuleFwName     = $instance.attributes.azure_firewall_name
+        $fwRuleId         = $instance.attributes.id
+        $fwRulePriority   = $instance.attributes.priority
         $fwRuleRg         = $instance.attributes.resource_group_name
         $fwRuleCollection = Get-AzFirewall -Name $fwRuleFwName -ResourceGroupName $fwRuleRg | Select-Object -ExpandProperty NatRuleCollections | Where-Object {$_.Name -eq $nameFwRule}
 
@@ -856,14 +860,14 @@ function check_tf_azurerm_bastion_host ($resource) {
     foreach($instance in $resource.instances) {
 
         $nameBastionHost   = $instance.attributes.name
-        $BastionHostRg     = $instance.attributes.resource_group_name
         $BastionHostLoc    = $instance.attributes.location
+        $BastionHostRg     = $instance.attributes.resource_group_name
         $BastionHost       = Get-AzBastion -Name $nameBastionHost -ResourceGroupName $BastionHostRg
 
         It "$nameBastionHost should be provisioned" {
-            $BastionHost.ProvisioningState | Should -Be "Succeeded"
-            $BastionHost.Location | Should -Be $BastionHostLoc
             $BastionHost.IpConfigurations[0].ProvisioningState | Should -Be "Succeeded"
+            $BastionHost.Location                              | Should -Be $BastionHostLoc
+            $BastionHost.ProvisioningState                     | Should -Be "Succeeded"
         }
     }
 }
@@ -874,14 +878,14 @@ function check_tf_azurerm_application_gateway ($resource) {
     foreach($instance in $resource.instances) {
 
         $nameAppGw     = $instance.attributes.name
-        $appGwRg       = $instance.attributes.resource_group_name
         $appGwlocation = $instance.attributes.location
+        $appGwRg       = $instance.attributes.resource_group_name
         $appGw         = Get-AzApplicationGateway -Name $nameAppGw -ResourceGroupName $appGwRg
 
         It "$nameAppGw should be provisioned" {
+            $appGw.Location          | Should -Be $appGwlocation
+            $appGw.OperationalState  | Should -Be 'Running'
             $appGw.ProvisioningState | Should -Be 'Succeeded'
-            $appGw.OperationalState | Should -Be 'Running'
-            $appGw.Location | Should -Be $appGwlocation
         }
 
         foreach ($ip in $instance.attributes.frontend_ip_configuration) {
@@ -895,15 +899,15 @@ function check_tf_azurerm_application_gateway ($resource) {
 
             if( $ipPrivate) {
                 It "$nameIp for `"$nameAppGw`" should be configured" {
-                    $ip.ProvisioningState | Should -Be 'Succeeded'
-                    $ip.PrivateIPAddress | Sort-Object | Should -Be $ipPrivate
+                    $ip.PrivateIPAddress          | Sort-Object | Should -Be $ipPrivate
                     $ip.PrivateIPAllocationMethod | Sort-Object | Should -Be $ipPrivateAlloc
-                    $ip.Subnet.Id | Sort-Object | Should -Be $ipSubnetId
+                    $ip.ProvisioningState                       | Should -Be 'Succeeded'
+                    $ip.Subnet.Id                 | Sort-Object | Should -Be $ipSubnetId
                 }
             }
             else {
                 It "$nameIp for `"$nameAppGw`" should be configured" {
-                    $ip.ProvisioningState | Should -Be 'Succeeded'
+                    $ip.ProvisioningState             | Should -Be 'Succeeded'
                     $ip.PublicIPAddress | Sort-Object | Should -Be $ipPublic
                 }
             }
@@ -924,7 +928,7 @@ function check_tf_azurerm_dns_a_record ($resource) {
 
         It "$nameARecord should be provisioned" {
             $ARecord.ProvisioningState | Should -Be "Succeeded"
-            $ARecord.Ttl | Should -Be $ARecordTtl
+            $ARecord.Ttl               | Should -Be $ARecordTtl
         }
 
         foreach ($record in $instance.attributes.records) {
@@ -950,7 +954,7 @@ function check_tf_azurerm_dns_caa_record ($resource) {
 
         It "$nameCAARecord should be provisioned" {
             $CAARecord.ProvisioningState | Should -Be "Succeeded"
-            $CAARecord.Ttl | Should -Be $CAARecordTtl
+            $CAARecord.Ttl               | Should -Be $CAARecordTtl
         }
 
         foreach ($record in $instance.attributes.record) {
